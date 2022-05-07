@@ -9,7 +9,7 @@ import androidx.collection.ArrayMap
 import androidx.collection.SimpleArrayMap
 import tool.compet.core.DkConst
 import tool.compet.core.DkUtils
-import tool.compet.json.DkJsonConverter
+import tool.compet.json.DkJsons
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -48,7 +48,7 @@ class DkHttpApiService {
 	 */
 	fun configWithJson(context: Context?, filename: String?): DkHttpApiService {
 		val json = DkUtils.asset2string(context, filename)
-		val serverConfig = DkJsonConverter.ins.json2obj(json, DkHttpServerConfig::class.java)!!
+		val serverConfig = DkJsons.json2obj(json, DkHttpServerConfig::class.java)!!
 
 		if (serverConfig.baseUrl != null) {
 			baseUrl = serverConfig.baseUrl

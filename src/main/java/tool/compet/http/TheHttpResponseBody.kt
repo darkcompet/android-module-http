@@ -6,7 +6,7 @@ package tool.compet.http
 import android.graphics.Bitmap
 import tool.compet.core.*
 import tool.compet.graphics.DkBitmaps
-import tool.compet.json.DkJsonConverter
+import tool.compet.json.DkJsons
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
@@ -147,7 +147,7 @@ class TheHttpResponseBody(protected val httpResponse: TheHttpResponse) {
 			if (BuildConfig.DEBUG) {
 				DkLogs.info(this, "Got respond body as json: %s", json)
 			}
-			DkJsonConverter.ins.json2obj(json, responseClass)
+			DkJsons.json2obj(json, responseClass)
 		} catch (e: Exception) {
 			DkLogs.error(TheHttpResponseBody::class.java, e)
 			null
