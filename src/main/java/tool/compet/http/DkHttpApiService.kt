@@ -46,9 +46,9 @@ class DkHttpApiService {
 	 *
 	 * @param filename Json file under `asset` folder.
 	 */
-	fun configWithJson(context: Context?, filename: String?): DkHttpApiService {
+	fun configWithJson(context: Context, filename: String): DkHttpApiService {
 		val json = DkUtils.asset2string(context, filename)
-		val serverConfig = DkJsons.json2obj(json, DkHttpServerConfig::class.java)!!
+		val serverConfig = DkJsons.toObj(json, DkHttpServerConfig::class.java)!!
 
 		if (serverConfig.baseUrl != null) {
 			baseUrl = serverConfig.baseUrl

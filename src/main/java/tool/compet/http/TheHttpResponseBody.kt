@@ -147,7 +147,7 @@ class TheHttpResponseBody(protected val httpResponse: TheHttpResponse) {
 			if (BuildConfig.DEBUG) {
 				DkLogs.info(this, "Got respond body as json: %s", json)
 			}
-			DkJsons.json2obj(json, responseClass)
+			DkJsons.toObj(json, responseClass)
 		} catch (e: Exception) {
 			DkLogs.error(TheHttpResponseBody::class.java, e)
 			null
