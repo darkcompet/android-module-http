@@ -12,17 +12,17 @@ import java.net.HttpURLConnection
  */
 class TheHttpResponse(val connection: HttpURLConnection) {
 	// Http status code: HttpURLConnection.*
-	protected var code = -1
+	private var status = -1
 
 	// Http message
-	protected var message: String? = null
+	private var message: String? = null
 
 	// Body content from server
-	protected var body: TheHttpResponseBody? = null
+	private var body: TheHttpResponseBody? = null
 
 	@Throws(IOException::class)
-	fun code(): Int {
-		return if (code != -1) code else connection.responseCode.also { code = it }
+	fun status(): Int {
+		return if (status != -1) status else connection.responseCode.also { status = it }
 	}
 
 	@Throws(IOException::class)
@@ -36,15 +36,17 @@ class TheHttpResponse(val connection: HttpURLConnection) {
 
 	/**
 	 * Check http request has succeed or not.
+	 * Note: it does NOT check body status.
 	 */
 	@get:Throws(IOException::class)
-	val isSucceed: Boolean
-		get() = code() == HttpURLConnection.HTTP_OK
+	val succeed: Boolean
+		get() = status() == HttpURLConnection.HTTP_OK
 
 	/**
 	 * Check http request has failed or not.
+	 * Note: it does NOT check body status.
 	 */
 	@get:Throws(IOException::class)
-	val isFailed: Boolean
-		get() = code() != HttpURLConnection.HTTP_OK
+	val failed: Boolean
+		get() = status() != HttpURLConnection.HTTP_OK
 }

@@ -16,8 +16,8 @@ import java.net.HttpURLConnection
 /**
  * Actual content which be sent from server, we call it as body.
  */
-class TheHttpResponseBody(protected val httpResponse: TheHttpResponse) {
-	protected val connection: HttpURLConnection?
+class TheHttpResponseBody(private val response: TheHttpResponse) {
+	private val connection: HttpURLConnection?
 
 	/**
 	 * Decode body to array of byte.
@@ -30,7 +30,7 @@ class TheHttpResponseBody(protected val httpResponse: TheHttpResponse) {
 	 */
 	@Throws(IOException::class)
 	fun asBytes(): ByteArray? {
-		return stream2bytes(if (httpResponse.isSucceed) connection!!.inputStream else connection!!.errorStream)
+		return stream2bytes(if (response.succeed) connection!!.inputStream else connection!!.errorStream)
 	}
 
 	/**
@@ -43,8 +43,8 @@ class TheHttpResponseBody(protected val httpResponse: TheHttpResponse) {
 	 * @return Body as string for succeed/failed response.
 	 */
 	@Throws(IOException::class)
-	fun asString(): String? {
-		return stream2string(if (httpResponse.isSucceed) connection!!.inputStream else connection!!.errorStream)
+	fun readAsString(): String? {
+		return stream2string(if (response.succeed) connection!!.inputStream else connection!!.errorStream)
 	}
 
 	/**
@@ -59,7 +59,7 @@ class TheHttpResponseBody(protected val httpResponse: TheHttpResponse) {
 	@Throws(IOException::class)
 	fun <R> asJson(responseClass: Class<R>): R? {
 		return stream2json(
-			if (httpResponse.isSucceed) connection!!.inputStream else connection!!.errorStream,
+			if (response.succeed) connection!!.inputStream else connection!!.errorStream,
 			responseClass
 		)
 	}
@@ -72,7 +72,7 @@ class TheHttpResponseBody(protected val httpResponse: TheHttpResponse) {
 	 */
 	@Throws(IOException::class)
 	fun asByteStream(): InputStream {
-		return if (httpResponse.isSucceed) connection!!.inputStream else connection!!.errorStream
+		return if (response.succeed) connection!!.inputStream else connection!!.errorStream
 	}
 
 	fun bitmap(): Bitmap? {
@@ -95,7 +95,6 @@ class TheHttpResponseBody(protected val httpResponse: TheHttpResponse) {
 		connection!!.disconnect()
 	}
 
-	// region Private
 	private fun stream2bytes(inputStream: InputStream): ByteArray? {
 		return try {
 			val byteList = DkByteArrayList()
@@ -105,13 +104,15 @@ class TheHttpResponseBody(protected val httpResponse: TheHttpResponse) {
 				byteList.addRange(buffer, 0, readCount)
 			}
 			if (BuildConfig.DEBUG) {
-				DkLogs.info(this, "Got response as bytes, count: %d", byteList.size())
+				DkLogs.info(this, "stream2bytes~ Got response as bytes, count: %d", byteList.size())
 			}
 			byteList.toArray()
-		} catch (e: Exception) {
+		}
+		catch (e: Exception) {
 			DkLogs.error(this, e)
 			null
-		} finally {
+		}
+		finally {
 			connection!!.disconnect()
 		}
 	}
@@ -136,7 +137,7 @@ class TheHttpResponseBody(protected val httpResponse: TheHttpResponse) {
 		}
 
 		if (BuildConfig.DEBUG) {
-			DkLogs.info(this, "Got response as string: %s", builder.toString())
+			DkLogs.info(this, "stream2string~ Got response as string: %s", builder.toString())
 		}
 		return builder.toString()
 	}
@@ -145,18 +146,20 @@ class TheHttpResponseBody(protected val httpResponse: TheHttpResponse) {
 		return try {
 			val json = DkUtils.stream2string(inputStream)
 			if (BuildConfig.DEBUG) {
-				DkLogs.info(this, "Got respond body as json: %s", json)
+				DkLogs.info(this, "stream2json~ Got respond body as json: %s", json)
 			}
 			DkJsons.toObj(json, responseClass)
-		} catch (e: Exception) {
+		}
+		catch (e: Exception) {
 			DkLogs.error(TheHttpResponseBody::class.java, e)
 			null
-		} finally {
+		}
+		finally {
 			connection!!.disconnect()
 		}
-	} // endregion Private
+	}
 
 	init {
-		connection = httpResponse.connection
+		connection = response.connection
 	}
 }

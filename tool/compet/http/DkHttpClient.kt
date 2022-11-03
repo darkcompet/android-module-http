@@ -5,8 +5,10 @@ package tool.compet.http
 
 import androidx.collection.ArrayMap
 import androidx.collection.SimpleArrayMap
+import tool.compet.core.BuildConfig
 import tool.compet.core.DkLogs
 import tool.compet.core.DkUtils
+import tool.compet.json.DkJsons
 import java.io.BufferedOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -25,34 +27,20 @@ import java.net.URL
 </pre>` *
  */
 class DkHttpClient {
-	protected val headers: SimpleArrayMap<String, String> = ArrayMap()
-	protected var requestMethod: String? = DkHttpConst.GET
-	protected var link: String? = null
-	protected var body: ByteArray? = null
-	protected var connectTimeout = 15000
-	protected var readTimeout = 30000
+	// By default, we request with content as json
+	var contentTypeAsJson = true
 
-	constructor()
-	constructor(url: String?) {
-		link = url
-	}
+	private val headers: SimpleArrayMap<String, String> = ArrayMap()
+	private var body: ByteArray? = null
+	private var connectTimeout = 15000
+	private var readTimeout = 30000
 
-	fun setUrl(url: String?): DkHttpClient {
-		link = url
-		return this
-	}
-
-	fun setRequestMethod(requestMethod: String?): DkHttpClient {
-		this.requestMethod = requestMethod
-		return this
-	}
-
-	fun addToHeader(key: String, value: String): DkHttpClient {
+	fun putToHeader(key: String, value: String): DkHttpClient {
 		headers.put(key, value)
 		return this
 	}
 
-	fun addAllToHeader(map: SimpleArrayMap<String, String>?): DkHttpClient {
+	fun putAllToHeader(map: SimpleArrayMap<String, String>?): DkHttpClient {
 		headers.putAll(map!!)
 		return this
 	}
@@ -72,27 +60,174 @@ class DkHttpClient {
 		return this
 	}
 
+	fun <T : DkApiResponse> get(url: String, responseClass: Class<T>): T {
+		try {
+			val response = execute(url, DkHttpConst.GET)
+			if (response.failed) {
+				if (BuildConfig.DEBUG) {
+					DkLogs.debug(this, "Get get failed, status: ${response.status()}, error: ${response.message()}")
+				}
+				return responseClass.newInstance().apply {
+					this.status = response.status()
+					this.message = response.message()
+				}
+			}
+
+			return DkJsons.toObj(response.body().readAsString(), responseClass)!!
+		}
+		catch (e: Exception) {
+			if (BuildConfig.DEBUG) {
+				DkLogs.debug(this, "Get get exception, error: ${e.message}")
+			}
+			return responseClass.newInstance().apply {
+				this.status = -1
+				this.message = e.message ?: "DkError"
+			}
+		}
+	}
+
+	fun <T> getForType(url: String, responseClass: Class<T>): T? {
+		try {
+			val response = execute(url, DkHttpConst.GET)
+			if (response.failed) {
+				if (BuildConfig.DEBUG) {
+					DkLogs.debug(this, "GetForType get failed, status: ${response.status()}, error: ${response.message()}")
+				}
+				return null
+			}
+			return DkJsons.toObj(response.body().readAsString(), responseClass)
+		}
+		catch (e: Exception) {
+			if (BuildConfig.DEBUG) {
+				DkLogs.debug(this, "GetForType get exception, error: ${e.message}")
+			}
+			return null
+		}
+	}
+
+	fun <T : DkApiResponse> post(url: String, body: ByteArray, responseClass: Class<T>): T {
+		try {
+			this.body = body
+
+			val response = execute(url, DkHttpConst.POST)
+			if (response.failed) {
+				if (BuildConfig.DEBUG) {
+					DkLogs.debug(this, "Post get failed, status: ${response.status()}, error: ${response.message()}")
+				}
+				return responseClass.newInstance().apply {
+					this.status = response.status()
+					this.message = response.message()
+				}
+			}
+
+			return DkJsons.toObj(response.body().readAsString(), responseClass)!!
+		}
+		catch (e: Exception) {
+			if (BuildConfig.DEBUG) {
+				DkLogs.debug(this, "Post get exception, error: ${e.message}")
+			}
+			return responseClass.newInstance().apply {
+				this.status = -1
+				this.message = e.message ?: "DkError"
+			}
+		}
+	}
+
+	fun <T : DkApiResponse> post(url: String, body: Any, responseClass: Class<T>): T {
+		try {
+			this.body = DkJsons.toJson(body).toByteArray()
+
+			val response = execute(url, DkHttpConst.POST)
+			if (response.failed) {
+				if (BuildConfig.DEBUG) {
+					DkLogs.debug(this, "Post get failed, status: ${response.status()}, error: ${response.message()}")
+				}
+				return responseClass.newInstance().apply {
+					this.status = response.status()
+					this.message = response.message()
+				}
+			}
+
+			return DkJsons.toObj(response.body().readAsString(), responseClass)!!
+		}
+		catch (e: Exception) {
+			if (BuildConfig.DEBUG) {
+				DkLogs.debug(this, "Post get exception, error: ${e.message}")
+			}
+			return responseClass.newInstance().apply {
+				this.status = -1
+				this.message = e.message ?: "DkError"
+			}
+		}
+	}
+
+	fun <T> postForType(url: String, body: ByteArray, responseClass: Class<T>): T? {
+		try {
+			this.body = body
+
+			val response = execute(url, DkHttpConst.POST)
+			if (response.failed) {
+				if (BuildConfig.DEBUG) {
+					DkLogs.debug(this, "PostForType get failed, status: ${response.status()}, error: ${response.message()}")
+				}
+				return null
+			}
+
+			return DkJsons.toObj(response.body().readAsString(), responseClass)
+		}
+		catch (e: Exception) {
+			if (BuildConfig.DEBUG) {
+				DkLogs.debug(this, "PostForType get exception, error: ${e.message}")
+			}
+			return null
+		}
+	}
+
+	fun <T> postForType(url: String, body: Any, responseClass: Class<T>): T? {
+		try {
+			this.body = DkJsons.toJson(body).toByteArray()
+
+			val response = execute(url, DkHttpConst.POST)
+			if (response.failed) {
+				if (BuildConfig.DEBUG) {
+					DkLogs.debug(this, "PostForType get failed, status: ${response.status()}, error: ${response.message()}")
+				}
+				return null
+			}
+
+			return DkJsons.toObj(response.body().readAsString(), responseClass)
+		}
+		catch (e: Exception) {
+			if (BuildConfig.DEBUG) {
+				DkLogs.debug(this, "PostForType get exception, error: ${e.message}")
+			}
+			return null
+		}
+	}
+
 	/**
 	 * For GET method, we just connect to remote server without decode stream.
 	 * For POST method, we write to remote server and wait for client decode stream.
 	 */
 	@Throws(Exception::class)
-	fun execute(): TheHttpResponse {
-		if (link == null) {
-			throw RuntimeException("Must provide url")
+	fun execute(url: String, requestMethod: String): TheHttpResponse {
+		// Build
+		if (this.contentTypeAsJson) {
+			putToHeader(DkHttpConst.CONTENT_TYPE, DkHttpConst.APPLICATION_JSON)
 		}
+
 		if (BuildConfig.DEBUG) {
 			DkLogs.info(
 				this,
 				"Execute Http %s-request with link: %s, thread: %s, headers: %s",
 				requestMethod,
-				link,
+				url,
 				Thread.currentThread().name,
 				headers.toString()
 			)
 		}
-		val url = URL(link)
-		val connection = url.openConnection() as HttpURLConnection
+
+		val connection = URL(url).openConnection() as HttpURLConnection
 		val httpResponse = TheHttpResponse(connection)
 
 		// Apply headers to connection
@@ -106,12 +241,10 @@ class DkHttpClient {
 		connection.doInput = true
 
 		// Perform with request method (get, post,...)
-		if (DkHttpConst.Companion.GET == requestMethod) {
-			doGet(connection)
-		} else if (DkHttpConst.Companion.POST == requestMethod) {
-			doPost(connection)
-		} else {
-			DkUtils.complainAt(this, "Invalid request method: $requestMethod")
+		when (requestMethod) {
+			DkHttpConst.GET -> doGet(connection)
+			DkHttpConst.POST -> doPost(connection)
+			else -> DkUtils.complainAt(this, "Invalid request method: $requestMethod")
 		}
 
 		// We return response without decoding result
@@ -120,15 +253,17 @@ class DkHttpClient {
 	}
 
 	@Throws(Exception::class)
-	protected fun doGet(connection: HttpURLConnection?) {
+	private fun doGet(connection: HttpURLConnection?) {
 		if (BuildConfig.DEBUG) {
 			DkLogs.info(this, "Perform GET request")
 		}
 	}
 
 	@Throws(Exception::class)
-	protected fun doPost(connection: HttpURLConnection) {
-		if (BuildConfig.DEBUG) { DkLogs.info(this, "Perform POST request. Body length: " + if (body == null) 0 else body!!.size) }
+	private fun doPost(connection: HttpURLConnection) {
+		if (BuildConfig.DEBUG) {
+			DkLogs.info(this, "Perform POST request. Body length: " + if (body == null) 0 else body!!.size)
+		}
 		if (body != null) {
 			connection.doOutput = true
 			// Write full post data to body
