@@ -65,7 +65,12 @@ class DkHttpClient {
 			val response = execute(url, DkHttpConst.GET)
 			if (response.failed) {
 				if (BuildConfig.DEBUG) {
-					DkLogs.debug(this, "Get get failed, status: ${response.status()}, error: ${response.message()}")
+					DkLogs.warning(
+						this,
+						"Get failed, status: ${response.status()}, message: ${response.message()}, body: ${
+							response.body().readAsString()
+						}"
+					)
 				}
 				return responseClass.newInstance().apply {
 					this.status = response.status()
@@ -77,7 +82,7 @@ class DkHttpClient {
 		}
 		catch (e: Exception) {
 			if (BuildConfig.DEBUG) {
-				DkLogs.debug(this, "Get get exception, error: ${e.message}")
+				DkLogs.error(this, "Get exception, error: ${e.message}")
 			}
 			return responseClass.newInstance().apply {
 				this.status = -1
@@ -91,7 +96,12 @@ class DkHttpClient {
 			val response = execute(url, DkHttpConst.GET)
 			if (response.failed) {
 				if (BuildConfig.DEBUG) {
-					DkLogs.debug(this, "GetForType get failed, status: ${response.status()}, error: ${response.message()}")
+					DkLogs.warning(
+						this,
+						"GetForType failed, status: ${response.status()}, message: ${response.message()}, body: ${
+							response.body().readAsString()
+						}"
+					)
 				}
 				return null
 			}
@@ -99,7 +109,7 @@ class DkHttpClient {
 		}
 		catch (e: Exception) {
 			if (BuildConfig.DEBUG) {
-				DkLogs.debug(this, "GetForType get exception, error: ${e.message}")
+				DkLogs.error(this, "GetForType exception, error: ${e.message}")
 			}
 			return null
 		}
@@ -112,7 +122,12 @@ class DkHttpClient {
 			val response = execute(url, DkHttpConst.POST)
 			if (response.failed) {
 				if (BuildConfig.DEBUG) {
-					DkLogs.debug(this, "Post get failed, status: ${response.status()}, error: ${response.message()}")
+					DkLogs.warning(
+						this,
+						"Post failed, status: ${response.status()}, message: ${response.message()}, body: ${
+							response.body().readAsString()
+						}"
+					)
 				}
 				return responseClass.newInstance().apply {
 					this.status = response.status()
@@ -124,7 +139,7 @@ class DkHttpClient {
 		}
 		catch (e: Exception) {
 			if (BuildConfig.DEBUG) {
-				DkLogs.debug(this, "Post get exception, error: ${e.message}")
+				DkLogs.error(this, "Post exception, error: ${e.message}")
 			}
 			return responseClass.newInstance().apply {
 				this.status = -1
@@ -140,7 +155,12 @@ class DkHttpClient {
 			val response = execute(url, DkHttpConst.POST)
 			if (response.failed) {
 				if (BuildConfig.DEBUG) {
-					DkLogs.debug(this, "Post get failed, status: ${response.status()}, error: ${response.message()}")
+					DkLogs.warning(
+						this,
+						"Post failed, status: ${response.status()}, message: ${response.message()}, body: ${
+							response.body().readAsString()
+						}"
+					)
 				}
 				return responseClass.newInstance().apply {
 					this.status = response.status()
@@ -152,7 +172,7 @@ class DkHttpClient {
 		}
 		catch (e: Exception) {
 			if (BuildConfig.DEBUG) {
-				DkLogs.debug(this, "Post get exception, error: ${e.message}")
+				DkLogs.error(this, "Post exception, error: ${e.message}, stackTrace: ${e.stackTrace.contentDeepToString()}")
 			}
 			return responseClass.newInstance().apply {
 				this.status = -1
@@ -168,7 +188,12 @@ class DkHttpClient {
 			val response = execute(url, DkHttpConst.POST)
 			if (response.failed) {
 				if (BuildConfig.DEBUG) {
-					DkLogs.debug(this, "PostForType get failed, status: ${response.status()}, error: ${response.message()}")
+					DkLogs.warning(
+						this,
+						"PostForType failed, status: ${response.status()}, message: ${response.message()}, body: ${
+							response.body().readAsString()
+						}"
+					)
 				}
 				return null
 			}
@@ -177,7 +202,7 @@ class DkHttpClient {
 		}
 		catch (e: Exception) {
 			if (BuildConfig.DEBUG) {
-				DkLogs.debug(this, "PostForType get exception, error: ${e.message}")
+				DkLogs.error(this, "PostForType exception, error: ${e.message}")
 			}
 			return null
 		}
@@ -190,7 +215,12 @@ class DkHttpClient {
 			val response = execute(url, DkHttpConst.POST)
 			if (response.failed) {
 				if (BuildConfig.DEBUG) {
-					DkLogs.debug(this, "PostForType get failed, status: ${response.status()}, error: ${response.message()}")
+					DkLogs.warning(
+						this,
+						"PostForType failed, status: ${response.status()}, message: ${response.message()}, body: ${
+							response.body().readAsString()
+						}"
+					)
 				}
 				return null
 			}
@@ -199,7 +229,7 @@ class DkHttpClient {
 		}
 		catch (e: Exception) {
 			if (BuildConfig.DEBUG) {
-				DkLogs.debug(this, "PostForType get exception, error: ${e.message}")
+				DkLogs.error(this, "PostForType exception, error: ${e.message}")
 			}
 			return null
 		}

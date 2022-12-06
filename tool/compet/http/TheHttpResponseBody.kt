@@ -3,10 +3,9 @@
  */
 package tool.compet.http
 
-import android.graphics.Bitmap
-import tool.compet.core.*
-import tool.compet.graphics.DkBitmaps
-import tool.compet.json.DkJsons
+import tool.compet.core.DkByteArrayList
+import tool.compet.core.DkConst
+import tool.compet.core.DkLogs
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
@@ -19,6 +18,10 @@ import java.net.HttpURLConnection
 class TheHttpResponseBody(private val response: TheHttpResponse) {
 	private val connection: HttpURLConnection?
 
+	init {
+		connection = response.connection
+	}
+
 	/**
 	 * Decode body to array of byte.
 	 * This method auto disconnect remote server after called even error occured.
@@ -29,8 +32,10 @@ class TheHttpResponseBody(private val response: TheHttpResponse) {
 	 * @return Body as byte[] for succeed/failed response.
 	 */
 	@Throws(IOException::class)
-	fun asBytes(): ByteArray? {
-		return stream2bytes(if (response.succeed) connection!!.inputStream else connection!!.errorStream)
+	fun readAsBytes(): ByteArray? {
+		val connection = this.connection!!
+
+		return stream2bytes(if (response.succeed) connection.inputStream else connection.errorStream)
 	}
 
 	/**
@@ -44,24 +49,9 @@ class TheHttpResponseBody(private val response: TheHttpResponse) {
 	 */
 	@Throws(IOException::class)
 	fun readAsString(): String? {
-		return stream2string(if (response.succeed) connection!!.inputStream else connection!!.errorStream)
-	}
+		val connection = this.connection!!
 
-	/**
-	 * Consider body as json and Decode it to object which has type of given class.
-	 * This method automatically close the stream and disconnect remote server after called.
-	 *
-	 * Note that, call this when http request has succeed since this method
-	 * read response from input stream of connection.
-	 *
-	 * @return Body as json for succeed/failed response.
-	 */
-	@Throws(IOException::class)
-	fun <R> asJson(responseClass: Class<R>): R? {
-		return stream2json(
-			if (response.succeed) connection!!.inputStream else connection!!.errorStream,
-			responseClass
-		)
+		return stream2string(if (response.succeed) connection.inputStream else connection.errorStream)
 	}
 
 	/**
@@ -71,21 +61,10 @@ class TheHttpResponseBody(private val response: TheHttpResponse) {
 	 * @return Raw input stream for succeed/failed response.
 	 */
 	@Throws(IOException::class)
-	fun asByteStream(): InputStream {
-		return if (response.succeed) connection!!.inputStream else connection!!.errorStream
-	}
+	fun readAsStream(): InputStream {
+		val connection = this.connection!!
 
-	fun bitmap(): Bitmap? {
-		return try {
-			DkBitmaps.load(connection!!.inputStream)
-		}
-		catch (e: Exception) {
-			DkLogcats.error(DkLogcats::class.java, e)
-			null
-		}
-		finally {
-			connection!!.disconnect()
-		}
+		return if (response.succeed) connection.inputStream else connection.errorStream
 	}
 
 	/**
@@ -97,15 +76,15 @@ class TheHttpResponseBody(private val response: TheHttpResponse) {
 
 	private fun stream2bytes(inputStream: InputStream): ByteArray? {
 		return try {
-			val byteList = DkByteArrayList()
-			val buffer = ByteArray(1 shl 12)
+			val capacity = 1 shl 12
+			val byteList = DkByteArrayList(capacity)
+			val buffer = ByteArray(capacity)
 			var readCount: Int
+
 			while (inputStream.read(buffer).also { readCount = it } != -1) {
 				byteList.addRange(buffer, 0, readCount)
 			}
-			if (BuildConfig.DEBUG) {
-				DkLogs.info(this, "stream2bytes~ Got response as bytes, count: %d", byteList.size())
-			}
+
 			byteList.toArray()
 		}
 		catch (e: Exception) {
@@ -136,30 +115,6 @@ class TheHttpResponseBody(private val response: TheHttpResponse) {
 			connection!!.disconnect()
 		}
 
-		if (BuildConfig.DEBUG) {
-			DkLogs.info(this, "stream2string~ Got response as string: %s", builder.toString())
-		}
 		return builder.toString()
-	}
-
-	private fun <R> stream2json(inputStream: InputStream, responseClass: Class<R>): R? {
-		return try {
-			val json = DkUtils.stream2string(inputStream)
-			if (BuildConfig.DEBUG) {
-				DkLogs.info(this, "stream2json~ Got respond body as json: %s", json)
-			}
-			DkJsons.toObj(json, responseClass)
-		}
-		catch (e: Exception) {
-			DkLogs.error(TheHttpResponseBody::class.java, e)
-			null
-		}
-		finally {
-			connection!!.disconnect()
-		}
-	}
-
-	init {
-		connection = response.connection
 	}
 }
