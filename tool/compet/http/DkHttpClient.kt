@@ -115,7 +115,7 @@ class DkHttpClient {
 		}
 	}
 
-	fun <T : DkApiResponse> post(url: String, body: ByteArray, responseClass: Class<T>): T {
+	fun <T : DkApiResponse> post(url: String, body: ByteArray?, responseClass: Class<T>): T {
 		try {
 			this.body = body
 
